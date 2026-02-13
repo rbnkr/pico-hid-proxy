@@ -1,0 +1,7 @@
+# Firmware binaries (large, downloadable separately)
+firmware/*.uf2
+
+# IDE / tool config
+.claude/
+__pycache__/
+*.pyc

@@ -1,0 +1,5 @@
+firmware/
+host/
+input_monitor/
+.git/
+*.md
