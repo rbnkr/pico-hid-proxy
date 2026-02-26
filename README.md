@@ -84,7 +84,7 @@ The device code is frozen into a custom MicroPython firmware, producing a single
 ./build_firmware.sh
 ```
 
-This builds MicroPython v1.27.0 for `RPI_PICO2_W` with all `device/` code and the `usb-device-hid` library frozen in. Output: `firmware/pico_hid_firmware.uf2`.
+This builds MicroPython for `RPI_PICO2_W` with all `device/` code and the `usb-device-hid` library frozen in. Output: `firmware/pico_hid_firmware.uf2`.
 
 To update MicroPython version edit the `Dockerfile` or run with `--build-arg MICROPYTHON_TAG=v1.27.0` arg.
 
