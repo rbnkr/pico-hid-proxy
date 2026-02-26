@@ -83,7 +83,6 @@ def main():
             if cmd.strip().lower() == "help":
                 print("""
 Keyboard:
-  ping                  - Test connection (expect PONG)
   key <name>            - Press+release (e.g. key a, key enter)
   keydown <name>        - Hold key
   keyup <name>          - Release key
@@ -99,7 +98,19 @@ Mouse:
   mouse up <btn>        - Release button
   mouse scroll <n>      - Scroll (positive=up, e.g. mouse scroll -3)
 
+WiFi:
+  wifi set <ssid> <pw>  - Save WiFi credentials
+  wifi get              - Show saved credentials
+  wifi connect [s] [p]  - Connect (saves creds if given, uses saved if not)
+  wifi disconnect       - Disconnect from WiFi
+  wifi status           - Show connection status, IP, signal strength
+  wifi clear            - Delete saved credentials and disconnect
+
+API:
+  api token <value>     - Set the API token for web access
+
 System:
+  ping                  - Test connection (expect PONG)
   reset                 - Release all keys + buttons
   bootloader            - Reboot Pico into BOOTSEL mode
   quit / exit           - Close this script
