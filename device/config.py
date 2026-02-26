@@ -46,3 +46,23 @@ def set_web_password(password):
     cfg = load()
     cfg["web_pass"] = password
     save(cfg)
+
+
+def get_api_enabled():
+    return load().get("api_enabled", False)
+
+
+def set_api_enabled(val):
+    cfg = load()
+    cfg["api_enabled"] = bool(val)
+    save(cfg)
+
+
+def get_webui_enabled():
+    return load().get("webui_enabled", False)
+
+
+def set_webui_enabled(val):
+    cfg = load()
+    cfg["webui_enabled"] = bool(val)
+    save(cfg)

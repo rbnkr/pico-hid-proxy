@@ -39,6 +39,9 @@ def parse(line):
     if verb == "bootloader":
         return Command("bootloader")
 
+    if verb == "status":
+        return Command("status")
+
     # --- WiFi / Web commands ---
     if verb == "wifi":
         if not rest:
@@ -77,7 +80,7 @@ def parse(line):
 
     if verb == "api":
         if not rest:
-            return "api: missing subcommand (token)"
+            return "api: missing subcommand (token/enable/disable/status)"
         api_parts = rest.split(None, 1)
         sub = api_parts[0].lower()
         sub_rest = api_parts[1] if len(api_parts) > 1 else ""
@@ -87,7 +90,32 @@ def parse(line):
                 return "api token: missing token value"
             return Command("api_token", {"token": sub_rest.strip()})
 
+        if sub == "enable":
+            return Command("api_enable")
+
+        if sub == "disable":
+            return Command("api_disable")
+
+        if sub == "status":
+            return Command("api_status")
+
         return "api: unknown subcommand '{}'".format(sub)
+
+    if verb == "webui":
+        if not rest:
+            return "webui: missing subcommand (enable/disable/status)"
+        sub = rest.split()[0].lower()
+
+        if sub == "enable":
+            return Command("webui_enable")
+
+        if sub == "disable":
+            return Command("webui_disable")
+
+        if sub == "status":
+            return Command("webui_status")
+
+        return "webui: unknown subcommand '{}'".format(sub)
 
     # --- Keyboard: key <name> ---
     if verb == "key":

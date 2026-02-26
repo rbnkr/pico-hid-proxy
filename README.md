@@ -83,11 +83,14 @@ From the serial console:
 ```
 api token mysecrettoken
 wifi connect MyNetwork MyPassword
+webui enable
 ```
 
-This saves credentials to flash and connects. On success, the Pico prints the URL (e.g. `WEB http://192.168.1.42`). Open it in any browser to access the control page.
+The API and web UI are disabled by default. Use `webui enable` to enable the web interface (this also enables the API). To enable only the API without the web UI, use `api enable` instead.
 
-Credentials and token persist across reboots — the Pico will auto-connect on power up.
+On success, the Pico prints the URL (e.g. `WEB http://192.168.1.42`). Open it in any browser to access the control page.
+
+Credentials, token, and enable states persist across reboots — the Pico will auto-connect on power up.
 
 ### API
 
@@ -141,6 +144,17 @@ The `delay` field (in milliseconds) adds a wait before executing the command.
 | Command | Description |
 |---|---|
 | `api token <value>` | Set the API token for web access |
+| `api enable` | Enable the API |
+| `api disable` | Disable the API (also disables web UI) |
+| `api status` | Show whether the API is enabled or disabled |
+
+### Web UI
+
+| Command | Description |
+|---|---|
+| `webui enable` | Enable the web UI (also enables the API) |
+| `webui disable` | Disable the web UI |
+| `webui status` | Show whether the web UI is enabled or disabled |
 
 ### System
 
@@ -148,6 +162,7 @@ The `delay` field (in milliseconds) adds a wait before executing the command.
 |---|---|
 | `ping` | Test connection (returns PONG) |
 | `reset` | Release all keys and buttons |
+| `status` | Show overall system status (wifi, api, webui) |
 | `bootloader` | Reboot Pico into BOOTSEL (UF2 flash) mode |
 
 ## Input Monitor
