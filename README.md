@@ -1,4 +1,4 @@
-# Pico HID
+# Pico HID Proxy
 
 A Raspberry Pi Pico 2 W acting as a USB HID keyboard and mouse, controlled over serial or WiFi from a host PC or any device on the network.
 

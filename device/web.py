@@ -1,4 +1,4 @@
-# Minimal async HTTP server for Pico HID web control
+# Minimal async HTTP server for Pico HID Proxy web control
 # Serves a public HTML page and a token-authenticated JSON API endpoint.
 
 import json

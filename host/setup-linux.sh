@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ── Pico HID Setup Script (Linux/macOS) ─────────────────────────────────────
-# Communicates with a Pico HID device over USB CDC serial.
+# ── Pico HID Proxy Setup Script (Linux/macOS) ───────────────────────────────
+# Communicates with a Pico HID Proxy device over USB CDC serial.
 # Zero dependencies — uses raw /dev/ttyACM* access via stty.
 
 set -euo pipefail
@@ -134,7 +134,7 @@ show_main_menu() {
     while true; do
         clear
         echo -e "${C_CYAN}========================================${C_RESET}"
-        echo -e "${C_CYAN}          Pico HID Setup${C_RESET}"
+        echo -e "${C_CYAN}          Pico HID Proxy Setup${C_RESET}"
         echo -e "${C_CYAN}========================================${C_RESET}"
         echo
 
@@ -175,7 +175,7 @@ setup_wizard() {
     echo -e "${C_CYAN}          Setup Wizard${C_RESET}"
     echo -e "${C_CYAN}========================================${C_RESET}"
     echo
-    echo "This wizard will help you configure your Pico HID device."
+    echo "This wizard will help you configure your Pico HID Proxy device."
     echo
 
     # Step 1 — WiFi

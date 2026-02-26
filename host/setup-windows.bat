@@ -1,14 +1,14 @@
 <# :
 @echo off
-title Pico HID Setup
+title Pico HID Proxy Setup
 powershell -ExecutionPolicy Bypass -NoProfile -Command "& ([scriptblock]::Create((Get-Content -LiteralPath '%~f0' -Raw)))"
 pause
 goto :EOF
 #>
 
-# ── Pico HID Setup Script ──────────────────────────────────────────────────────
+# ── Pico HID Proxy Setup Script ────────────────────────────────────────────────
 # Batch/PowerShell polyglot: double-click the .bat to run.
-# Communicates with a Pico HID device over USB CDC serial.
+# Communicates with a Pico HID Proxy device over USB CDC serial.
 
 $ErrorActionPreference = 'Stop'
 $script:port = $null
@@ -103,7 +103,7 @@ function Show-MainMenu {
     while ($true) {
         Clear-Host
         Write-Host '========================================' -ForegroundColor Cyan
-        Write-Host '          Pico HID Setup'               -ForegroundColor Cyan
+        Write-Host '          Pico HID Proxy Setup'         -ForegroundColor Cyan
         Write-Host '========================================' -ForegroundColor Cyan
         Write-Host ''
 
@@ -159,7 +159,7 @@ function Start-SetupWizard {
     Write-Host '          Setup Wizard'                  -ForegroundColor Cyan
     Write-Host '========================================' -ForegroundColor Cyan
     Write-Host ''
-    Write-Host 'This wizard will help you configure your Pico HID device.' -ForegroundColor White
+    Write-Host 'This wizard will help you configure your Pico HID Proxy device.' -ForegroundColor White
     Write-Host ''
 
     # Step 1 — WiFi

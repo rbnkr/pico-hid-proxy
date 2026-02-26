@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interactive host script for Pico HID device.
+"""Interactive host script for Pico HID Proxy device.
 
 Usage:
     python host.py [COM_PORT]

@@ -40,7 +40,7 @@ jobs:
       - name: Bundle release zip
         run: |
           TAG="${{ needs.tag.outputs.new_tag }}"
-          STAGE="pico-hid-${TAG}"
+          STAGE="pico-hid-proxy-${TAG}"
           mkdir -p "$STAGE"
           cp firmware/pico_hid_firmware.uf2 "$STAGE/"
           cp host/setup-windows.bat "$STAGE/"
@@ -52,5 +52,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.tag.outputs.new_tag }}
-          files: pico-hid-${{ needs.tag.outputs.new_tag }}.zip
+          files: pico-hid-proxy-${{ needs.tag.outputs.new_tag }}.zip
           generate_release_notes: true
