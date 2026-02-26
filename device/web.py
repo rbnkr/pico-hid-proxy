@@ -6,6 +6,8 @@ import uasyncio as asyncio
 
 _dispatch_fn = None
 _web_password = None
+_api_enabled = False
+_webui_enabled = False
 
 _HTML = """\
 <!DOCTYPE html>
@@ -37,27 +39,38 @@ td:first-child{color:#7ec8e3;white-space:nowrap}
 <button onclick="send()">Execute</button>
 <div id="res"></div>
 <details><summary>Command Reference</summary><table>
+<tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">Keyboard</td></tr>
 <tr><td>key &lt;name&gt;</td><td>Press &amp; release key</td></tr>
 <tr><td>keydown &lt;name&gt;</td><td>Hold key down</td></tr>
 <tr><td>keyup &lt;name&gt;</td><td>Release key</td></tr>
 <tr><td>mod &lt;mods&gt; &lt;key&gt;</td><td>Modifier combo (e.g. mod ctrl+shift esc)</td></tr>
 <tr><td>type &lt;text&gt;</td><td>Type a string</td></tr>
 <tr><td>releaseall</td><td>Release all keys</td></tr>
+<tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">Mouse</td></tr>
 <tr><td>mouse move &lt;dx&gt; &lt;dy&gt;</td><td>Relative mouse move</td></tr>
 <tr><td>mouse abs &lt;x&gt; &lt;y&gt;</td><td>Absolute position (0-32767)</td></tr>
 <tr><td>mouse click &lt;btn&gt;</td><td>Click left/right/middle</td></tr>
 <tr><td>mouse down &lt;btn&gt;</td><td>Hold mouse button</td></tr>
 <tr><td>mouse up &lt;btn&gt;</td><td>Release mouse button</td></tr>
 <tr><td>mouse scroll &lt;n&gt;</td><td>Scroll wheel (+ up, - down)</td></tr>
-<tr><td>ping</td><td>Connection test</td></tr>
-<tr><td>reset</td><td>Release all keys &amp; buttons</td></tr>
+<tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">WiFi</td></tr>
 <tr><td>wifi set &lt;ssid&gt; &lt;pass&gt;</td><td>Save WiFi credentials</td></tr>
 <tr><td>wifi get</td><td>Show saved credentials</td></tr>
 <tr><td>wifi connect [ssid] [pass]</td><td>Connect (use saved if no args)</td></tr>
 <tr><td>wifi disconnect</td><td>Disconnect WiFi</td></tr>
 <tr><td>wifi status</td><td>Show WiFi status</td></tr>
 <tr><td>wifi clear</td><td>Delete saved credentials</td></tr>
+<tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">API</td></tr>
 <tr><td>api token &lt;value&gt;</td><td>Set API token</td></tr>
+<tr><td>api enable / disable</td><td>Enable or disable API</td></tr>
+<tr><td>api status</td><td>Show API enabled state</td></tr>
+<tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">Web UI</td></tr>
+<tr><td>webui enable / disable</td><td>Enable or disable web UI</td></tr>
+<tr><td>webui status</td><td>Show web UI enabled state</td></tr>
+<tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">System</td></tr>
+<tr><td>ping</td><td>Connection test</td></tr>
+<tr><td>reset</td><td>Release all keys &amp; buttons</td></tr>
+<tr><td>status</td><td>Show overall system status</td></tr>
 </table></details>
 <details><summary>API Usage</summary>
 <p style="margin:6px 0;font-size:13px">POST to <code>/api</code> with JSON body:</p>
@@ -83,15 +96,27 @@ $('cmd').onkeydown=e=>{if(e.key==='Enter')send()};
 </script></body></html>"""
 
 
-def start(password, dispatch_fn):
-    global _dispatch_fn, _web_password
+def start(password, dispatch_fn, api_enabled=False, webui_enabled=False):
+    global _dispatch_fn, _web_password, _api_enabled, _webui_enabled
     _dispatch_fn = dispatch_fn
     _web_password = password
+    _api_enabled = api_enabled
+    _webui_enabled = webui_enabled
 
 
 def set_password(password):
     global _web_password
     _web_password = password
+
+
+def set_api_enabled(val):
+    global _api_enabled
+    _api_enabled = bool(val)
+
+
+def set_webui_enabled(val):
+    global _webui_enabled
+    _webui_enabled = bool(val)
 
 
 def _url_decode(s):
@@ -146,12 +171,21 @@ async def _handle_client(reader, writer):
 
         # GET / — serve HTML page
         if method == "GET" and path == "/":
+            if not _webui_enabled:
+                _send_response(writer, 404, "text/plain", "not found")
+                await writer.drain()
+                return
             _send_response(writer, 200, "text/html", _HTML)
             await writer.drain()
             return
 
         # POST /api — execute command
         if method == "POST" and path == "/api":
+            if not _api_enabled:
+                _send_response(writer, 404, "text/plain", "not found")
+                await writer.drain()
+                return
+
             body = b""
             if content_length > 0:
                 body = await asyncio.wait_for(

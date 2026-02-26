@@ -83,6 +83,66 @@ def _dispatch(cmd, from_web=False):
             import web
             web.set_password(p["token"])
         return "OK api token set"
+    if k == "api_enable":
+        if not config.get_web_password():
+            return "ERR no api token set (use api token <value> first)"
+        config.set_api_enabled(True)
+        if _web_server_started:
+            import web
+            web.set_api_enabled(True)
+        _try_start_web()
+        return "OK api enabled"
+    if k == "api_disable":
+        config.set_api_enabled(False)
+        config.set_webui_enabled(False)
+        if _web_server_started:
+            import web
+            web.set_api_enabled(False)
+            web.set_webui_enabled(False)
+        return "OK api disabled (webui also disabled)"
+    if k == "api_status":
+        enabled = config.get_api_enabled()
+        running = _web_server_started and enabled
+        state = "enabled" if enabled else "disabled"
+        return "api {} ({})".format(state, "running" if running else "stopped")
+    if k == "webui_enable":
+        if not config.get_web_password():
+            return "ERR no api token set (use api token <value> first)"
+        config.set_webui_enabled(True)
+        config.set_api_enabled(True)
+        if _web_server_started:
+            import web
+            web.set_webui_enabled(True)
+            web.set_api_enabled(True)
+        _try_start_web()
+        return "OK webui enabled (api also enabled)"
+    if k == "webui_disable":
+        config.set_webui_enabled(False)
+        if _web_server_started:
+            import web
+            web.set_webui_enabled(False)
+        return "OK webui disabled"
+    if k == "webui_status":
+        enabled = config.get_webui_enabled()
+        running = _web_server_started and enabled
+        state = "enabled" if enabled else "disabled"
+        return "webui {} ({})".format(state, "running" if running else "stopped")
+    if k == "status":
+        lines = []
+        ssid, _ = config.get_wifi()
+        lines.append("wifi credentials: {}".format("set" if ssid else "not set"))
+        lines.append("wifi: {}".format(wifi.status_str()))
+        api_on = config.get_api_enabled()
+        api_running = _web_server_started and api_on
+        lines.append("api: {} ({})".format(
+            "enabled" if api_on else "disabled",
+            "running" if api_running else "stopped"))
+        webui_on = config.get_webui_enabled()
+        webui_running = _web_server_started and webui_on
+        lines.append("webui: {} ({})".format(
+            "enabled" if webui_on else "disabled",
+            "running" if webui_running else "stopped"))
+        return "\n".join(lines)
 
     # Keyboard
     if k == "key":
@@ -137,9 +197,14 @@ def _dispatch_from_web(cmd_str):
 
 
 def _try_start_web():
-    """Start web server if WiFi is connected and a web password is set."""
+    """Start web server if WiFi is connected, a token is set, and api/webui is enabled."""
     global _web_server_started
     if _web_server_started:
+        return
+    api_on = config.get_api_enabled()
+    webui_on = config.get_webui_enabled()
+    if not api_on and not webui_on:
+        _respond("WEB skipped (api and webui disabled)")
         return
     web_pass = config.get_web_password()
     if not web_pass:
@@ -149,7 +214,7 @@ def _try_start_web():
         return
     import web
 
-    web.start(web_pass, _dispatch_from_web)
+    web.start(web_pass, _dispatch_from_web, api_on, webui_on)
     asyncio.create_task(web.run_server())
     _web_server_started = True
     ip = wifi.get_ip()

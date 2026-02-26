@@ -108,10 +108,19 @@ WiFi:
 
 API:
   api token <value>     - Set the API token for web access
+  api enable            - Enable the API
+  api disable           - Disable API (also disables webui)
+  api status            - Show API enabled state
+
+WebUI:
+  webui enable          - Enable web UI (also enables API)
+  webui disable         - Disable web UI
+  webui status          - Show web UI enabled state
 
 System:
   ping                  - Test connection (expect PONG)
   reset                 - Release all keys + buttons
+  status                - Show overall system status
   bootloader            - Reboot Pico into BOOTSEL mode
   quit / exit           - Close this script
 """)
