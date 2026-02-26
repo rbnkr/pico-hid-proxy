@@ -30,17 +30,16 @@ def parse(line):
     if verb == "ping":
         return Command("ping")
 
-    if verb == "reset":
-        return Command("reset")
-
-    if verb == "releaseall":
-        return Command("releaseall")
-
-    if verb == "bootloader":
-        return Command("bootloader")
-
     if verb == "status":
         return Command("status")
+
+    if verb == "reboot":
+        if not rest:
+            return Command("reboot")
+        sub = rest.split()[0].lower()
+        if sub == "bootloader":
+            return Command("reboot_bootloader")
+        return "reboot: unknown subcommand '{}' (bootloader)".format(sub)
 
     # --- WiFi / Web commands ---
     if verb == "wifi":
@@ -117,70 +116,78 @@ def parse(line):
 
         return "webui: unknown subcommand '{}'".format(sub)
 
-    # --- Keyboard: key <name> ---
+    # --- Keyboard commands ---
     if verb == "key":
         if not rest:
-            return "key: missing key name"
-        resolved = keyname_to_code(rest.strip())
-        if resolved is None:
-            return "key: unknown key '{}'".format(rest.strip())
-        mod, code = resolved
-        return Command("key", {"mod": mod, "code": code})
+            return "key: missing subcommand (tap/down/up/mod/type/release)"
+        sub_parts = rest.split(None, 1)
+        sub = sub_parts[0].lower()
+        sub_rest = sub_parts[1] if len(sub_parts) > 1 else ""
 
-    # --- Keyboard: keydown <name> ---
-    if verb == "keydown":
-        if not rest:
-            return "keydown: missing key name"
-        resolved = keyname_to_code(rest.strip())
-        if resolved is None:
-            return "keydown: unknown key '{}'".format(rest.strip())
-        mod, code = resolved
-        return Command("keydown", {"mod": mod, "code": code})
+        if sub == "tap":
+            if not sub_rest:
+                return "key tap: missing key name"
+            resolved = keyname_to_code(sub_rest.strip())
+            if resolved is None:
+                return "key tap: unknown key '{}'".format(sub_rest.strip())
+            mod, code = resolved
+            return Command("key_tap", {"mod": mod, "code": code})
 
-    # --- Keyboard: keyup <name> ---
-    if verb == "keyup":
-        if not rest:
-            return "keyup: missing key name"
-        resolved = keyname_to_code(rest.strip())
-        if resolved is None:
-            return "keyup: unknown key '{}'".format(rest.strip())
-        mod, code = resolved
-        return Command("keyup", {"mod": mod, "code": code})
+        if sub == "down":
+            if not sub_rest:
+                return "key down: missing key name"
+            resolved = keyname_to_code(sub_rest.strip())
+            if resolved is None:
+                return "key down: unknown key '{}'".format(sub_rest.strip())
+            mod, code = resolved
+            return Command("key_down", {"mod": mod, "code": code})
 
-    # --- Keyboard: mod <mods> <key> ---
-    if verb == "mod":
-        if not rest:
-            return "mod: missing modifiers and key"
-        mod_parts = rest.split()
-        if len(mod_parts) < 2:
-            return "mod: need <mods> <key>"
-        mod_str = mod_parts[0]
-        key_name = mod_parts[1]
-        # Parse modifier combo like "ctrl+shift"
-        mod_bits = 0
-        for m in mod_str.lower().split("+"):
-            m = m.strip()
-            if m not in MODIFIER_KEYS:
-                return "mod: unknown modifier '{}'".format(m)
-            mod_bits |= MODIFIER_KEYS[m]
-        resolved = keyname_to_code(key_name)
-        if resolved is None:
-            return "mod: unknown key '{}'".format(key_name)
-        _, code = resolved
-        return Command("mod", {"mod": mod_bits, "code": code})
+        if sub == "up":
+            if not sub_rest:
+                return "key up: missing key name"
+            resolved = keyname_to_code(sub_rest.strip())
+            if resolved is None:
+                return "key up: unknown key '{}'".format(sub_rest.strip())
+            mod, code = resolved
+            return Command("key_up", {"mod": mod, "code": code})
 
-    # --- Keyboard: type <text> ---
-    if verb == "type":
-        if not rest:
-            return "type: missing text"
-        # Validate all characters are typeable
-        chars = []
-        for ch in rest:
-            result = char_to_report(ch)
-            if result is None:
-                return "type: unsupported character '{}'".format(ch)
-            chars.append(result)
-        return Command("type", {"chars": chars})
+        if sub == "mod":
+            if not sub_rest:
+                return "key mod: missing modifiers and key"
+            mod_parts = sub_rest.split()
+            if len(mod_parts) < 2:
+                return "key mod: need <mods> <key>"
+            mod_str = mod_parts[0]
+            key_name = mod_parts[1]
+            # Parse modifier combo like "ctrl+shift"
+            mod_bits = 0
+            for m in mod_str.lower().split("+"):
+                m = m.strip()
+                if m not in MODIFIER_KEYS:
+                    return "key mod: unknown modifier '{}'".format(m)
+                mod_bits |= MODIFIER_KEYS[m]
+            resolved = keyname_to_code(key_name)
+            if resolved is None:
+                return "key mod: unknown key '{}'".format(key_name)
+            _, code = resolved
+            return Command("key_mod", {"mod": mod_bits, "code": code})
+
+        if sub == "type":
+            if not sub_rest:
+                return "key type: missing text"
+            # Validate all characters are typeable
+            chars = []
+            for ch in sub_rest:
+                result = char_to_report(ch)
+                if result is None:
+                    return "key type: unsupported character '{}'".format(ch)
+                chars.append(result)
+            return Command("key_type", {"chars": chars})
+
+        if sub == "release":
+            return Command("key_release")
+
+        return "key: unknown subcommand '{}' (tap/down/up/mod/type/release)".format(sub)
 
     # --- Mouse commands ---
     if verb == "mouse":
@@ -247,6 +254,9 @@ def parse(line):
             except ValueError:
                 return "mouse scroll: amount must be integer"
             return Command("mouse_scroll", {"amount": amount})
+
+        if sub == "release":
+            return Command("mouse_release")
 
         return "mouse: unknown subcommand '{}'".format(sub)
 

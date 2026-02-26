@@ -63,8 +63,8 @@ def main():
         sys.exit(1)
 
     print(f"Connected. Type commands (or 'help' for examples, 'quit' to exit).")
-    print(f"NOTE: Keyboard commands (type/key) send HID keystrokes to the focused window.")
-    print(f"      Focus a text editor when testing keyboard commands.\n")
+    print(f"NOTE: HID commands (key/mouse) send input to the focused window.")
+    print(f"      Focus a target window when testing HID commands.\n")
 
     stop = threading.Event()
     t = threading.Thread(target=reader_thread, args=(ser, stop), daemon=True)
@@ -83,12 +83,12 @@ def main():
             if cmd.strip().lower() == "help":
                 print("""
 Keyboard:
-  key <name>            - Press+release (e.g. key a, key enter)
-  keydown <name>        - Hold key
-  keyup <name>          - Release key
-  mod <mods> <key>      - Modifier combo (e.g. mod ctrl+shift esc)
-  type <text>           - Type string (e.g. type Hello World!)
-  releaseall            - Release all keys
+  key tap <name>        - Press+release (e.g. key tap a, key tap enter)
+  key down <name>       - Hold key
+  key up <name>         - Release key
+  key mod <mods> <key>  - Modifier combo (e.g. key mod ctrl+shift esc)
+  key type <text>       - Type string (e.g. key type Hello World!)
+  key release           - Release all held keys
 
 Mouse:
   mouse move <dx> <dy>  - Relative move (e.g. mouse move 100 -50)
@@ -97,6 +97,7 @@ Mouse:
   mouse down <btn>      - Hold button
   mouse up <btn>        - Release button
   mouse scroll <n>      - Scroll (positive=up, e.g. mouse scroll -3)
+  mouse release         - Release all held buttons
 
 WiFi:
   wifi set <ssid> <pw>  - Save WiFi credentials
@@ -119,9 +120,9 @@ WebUI:
 
 System:
   ping                  - Test connection (expect PONG)
-  reset                 - Release all keys + buttons
   status                - Show overall system status
-  bootloader            - Reboot Pico into BOOTSEL mode
+  reboot                - Restart the Pico
+  reboot bootloader     - Reboot Pico into BOOTSEL mode
   quit / exit           - Close this script
 """)
                 continue
@@ -132,7 +133,7 @@ System:
             # Keyboard commands type into the focused window — give user
             # time to Alt-Tab to a target window first.
             verb = cmd.strip().split()[0].lower()
-            if verb in ("type", "key", "keydown", "mod", "mouse"):
+            if verb in ("key", "mouse", "reboot"):
                 delay = 3
                 for i in range(delay, 0, -1):
                     print(f"  Sending in {i}... (Alt-Tab to target window)", end="\r")
