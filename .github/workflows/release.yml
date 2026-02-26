@@ -37,12 +37,20 @@ jobs:
       - name: Build firmware
         run: ./build_firmware.sh
 
-      - name: Rename with version
-        run: mv firmware/pico_hid_firmware.uf2 firmware/pico_hid_firmware-${{ needs.tag.outputs.new_tag }}.uf2
+      - name: Bundle release zip
+        run: |
+          TAG="${{ needs.tag.outputs.new_tag }}"
+          STAGE="pico-hid-${TAG}"
+          mkdir -p "$STAGE"
+          cp firmware/pico_hid_firmware.uf2 "$STAGE/"
+          cp host/setup-windows.bat "$STAGE/"
+          cp host/setup-linux.sh "$STAGE/"
+          chmod +x "$STAGE/setup-linux.sh"
+          zip -r "${STAGE}.zip" "$STAGE"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.tag.outputs.new_tag }}
-          files: firmware/pico_hid_firmware-${{ needs.tag.outputs.new_tag }}.uf2
+          files: pico-hid-${{ needs.tag.outputs.new_tag }}.zip
           generate_release_notes: true
