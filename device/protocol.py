@@ -39,6 +39,56 @@ def parse(line):
     if verb == "bootloader":
         return Command("bootloader")
 
+    # --- WiFi / Web commands ---
+    if verb == "wifi":
+        if not rest:
+            return "wifi: missing subcommand (set/get/connect/disconnect/status/clear)"
+        wifi_parts = rest.split(None, 1)
+        sub = wifi_parts[0].lower()
+        sub_rest = wifi_parts[1] if len(wifi_parts) > 1 else ""
+
+        if sub == "set":
+            args = sub_rest.split(None, 1)
+            if len(args) < 2:
+                return "wifi set: need <ssid> <password>"
+            return Command("wifi_set", {"ssid": args[0], "password": args[1]})
+
+        if sub == "connect":
+            args = sub_rest.split(None, 1)
+            if len(args) == 0 or not args[0]:
+                return Command("wifi_connect", {})
+            if len(args) < 2:
+                return "wifi connect: need both <ssid> <password>, or no arguments to use saved"
+            return Command("wifi_connect", {"ssid": args[0], "password": args[1]})
+
+        if sub == "get":
+            return Command("wifi_get")
+
+        if sub == "disconnect":
+            return Command("wifi_disconnect")
+
+        if sub == "status":
+            return Command("wifi_status")
+
+        if sub == "clear":
+            return Command("wifi_clear")
+
+        return "wifi: unknown subcommand '{}' (set/get/connect/disconnect/status/clear)".format(sub)
+
+    if verb == "api":
+        if not rest:
+            return "api: missing subcommand (token)"
+        api_parts = rest.split(None, 1)
+        sub = api_parts[0].lower()
+        sub_rest = api_parts[1] if len(api_parts) > 1 else ""
+
+        if sub == "token":
+            if not sub_rest.strip():
+                return "api token: missing token value"
+            return Command("api_token", {"token": sub_rest.strip()})
+
+        return "api: unknown subcommand '{}'".format(sub)
+
     # --- Keyboard: key <name> ---
     if verb == "key":
         if not rest:

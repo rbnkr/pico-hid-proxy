@@ -1,6 +1,6 @@
 # Pico HID
 
-A Raspberry Pi Pico 2 W acting as a USB HID keyboard and mouse, controlled over serial from a host PC.
+A Raspberry Pi Pico 2 W acting as a USB HID keyboard and mouse, controlled over serial or WiFi from a host PC or any device on the network.
 
 ## Project Structure
 
@@ -70,21 +70,83 @@ python host/host.py COM5     # manual port
 
 Type `help` once connected for a list of commands.
 
+## WiFi Web Control
+
+The Pico can connect to a WiFi network and serve a web interface for sending commands from any device on the same network — no serial connection needed.
+
+![](.github/media/interface.png)
+
+### Setup
+
+From the serial console:
+
+```
+api token mysecrettoken
+wifi connect MyNetwork MyPassword
+```
+
+This saves credentials to flash and connects. On success, the Pico prints the URL (e.g. `WEB http://192.168.1.42`). Open it in any browser to access the control page.
+
+Credentials and token persist across reboots — the Pico will auto-connect on power up.
+
+### API
+
+The web interface uses a JSON API that can also be called directly:
+
+```
+curl -X POST http://PICO_IP/api \
+  -H "Content-Type: application/json" \
+  -d '{"cmd":"type Hello","delay":0,"token":"mysecrettoken"}'
+```
+
+Response: `{"ok":true,"result":"OK"}`
+
+The `delay` field (in milliseconds) adds a wait before executing the command.
+
 ## Commands
+
+### Keyboard
 
 | Command | Description |
 |---|---|
-| `ping` | Test connection (returns PONG) |
 | `key <name>` | Press and release a key |
 | `keydown <name>` / `keyup <name>` | Hold / release a key |
 | `mod <mods> <key>` | Modifier combo (e.g. `mod ctrl+shift esc`) |
 | `type <text>` | Type a string |
 | `releaseall` | Release all keys |
+
+### Mouse
+
+| Command | Description |
+|---|---|
 | `mouse move <dx> <dy>` | Relative mouse move |
-| `mouse abs <x> <y>` | Absolute mouse move |
+| `mouse abs <x> <y>` | Absolute mouse move (0–32767) |
 | `mouse click <btn>` | Click left/right/middle |
 | `mouse down <btn>` / `mouse up <btn>` | Hold / release button |
 | `mouse scroll <n>` | Scroll (positive = up) |
+
+### WiFi
+
+| Command | Description |
+|---|---|
+| `wifi set <ssid> <password>` | Save WiFi credentials without connecting |
+| `wifi get` | Show saved credentials |
+| `wifi connect [ssid] [password]` | Connect to WiFi (saves credentials if provided, uses saved if not) |
+| `wifi disconnect` | Disconnect from WiFi |
+| `wifi status` | Show connection status, IP, and signal strength |
+| `wifi clear` | Delete saved credentials and disconnect |
+
+### API
+
+| Command | Description |
+|---|---|
+| `api token <value>` | Set the API token for web access |
+
+### System
+
+| Command | Description |
+|---|---|
+| `ping` | Test connection (returns PONG) |
 | `reset` | Release all keys and buttons |
 | `bootloader` | Reboot Pico into BOOTSEL (UF2 flash) mode |
 
