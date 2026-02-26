@@ -31,7 +31,7 @@ td:first-child{color:#7ec8e3;white-space:nowrap}
 </style></head><body>
 <h2>Pico HID Proxy</h2>
 <label>Command</label>
-<input id="cmd" placeholder="e.g. key a, type Hello, mouse move 10 20" autofocus>
+<input id="cmd" placeholder="e.g. key tap a, key type Hello, mouse move 10 20" autofocus>
 <label>Delay (ms)</label>
 <input id="delay" type="number" value="0" min="0" step="500">
 <label>Token</label>
@@ -40,12 +40,12 @@ td:first-child{color:#7ec8e3;white-space:nowrap}
 <div id="res"></div>
 <details><summary>Command Reference</summary><table>
 <tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">Keyboard</td></tr>
-<tr><td>key &lt;name&gt;</td><td>Press &amp; release key</td></tr>
-<tr><td>keydown &lt;name&gt;</td><td>Hold key down</td></tr>
-<tr><td>keyup &lt;name&gt;</td><td>Release key</td></tr>
-<tr><td>mod &lt;mods&gt; &lt;key&gt;</td><td>Modifier combo (e.g. mod ctrl+shift esc)</td></tr>
-<tr><td>type &lt;text&gt;</td><td>Type a string</td></tr>
-<tr><td>releaseall</td><td>Release all keys</td></tr>
+<tr><td>key tap &lt;name&gt;</td><td>Press &amp; release key</td></tr>
+<tr><td>key down &lt;name&gt;</td><td>Hold key down</td></tr>
+<tr><td>key up &lt;name&gt;</td><td>Release key</td></tr>
+<tr><td>key mod &lt;mods&gt; &lt;key&gt;</td><td>Modifier combo (e.g. key mod ctrl+shift esc)</td></tr>
+<tr><td>key type &lt;text&gt;</td><td>Type a string</td></tr>
+<tr><td>key release</td><td>Release all held keys</td></tr>
 <tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">Mouse</td></tr>
 <tr><td>mouse move &lt;dx&gt; &lt;dy&gt;</td><td>Relative mouse move</td></tr>
 <tr><td>mouse abs &lt;x&gt; &lt;y&gt;</td><td>Absolute position (0-32767)</td></tr>
@@ -53,6 +53,7 @@ td:first-child{color:#7ec8e3;white-space:nowrap}
 <tr><td>mouse down &lt;btn&gt;</td><td>Hold mouse button</td></tr>
 <tr><td>mouse up &lt;btn&gt;</td><td>Release mouse button</td></tr>
 <tr><td>mouse scroll &lt;n&gt;</td><td>Scroll wheel (+ up, - down)</td></tr>
+<tr><td>mouse release</td><td>Release all held buttons</td></tr>
 <tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">WiFi</td></tr>
 <tr><td>wifi set &lt;ssid&gt; &lt;pass&gt;</td><td>Save WiFi credentials</td></tr>
 <tr><td>wifi get</td><td>Show saved credentials</td></tr>
@@ -69,14 +70,15 @@ td:first-child{color:#7ec8e3;white-space:nowrap}
 <tr><td>webui status</td><td>Show web UI enabled state</td></tr>
 <tr><td colspan="2" style="color:#0ff;font-weight:bold;border:none;padding-top:8px">System</td></tr>
 <tr><td>ping</td><td>Connection test</td></tr>
-<tr><td>reset</td><td>Release all keys &amp; buttons</td></tr>
 <tr><td>status</td><td>Show overall system status</td></tr>
+<tr><td>reboot</td><td>Restart the Pico</td></tr>
+<tr><td>reboot bootloader</td><td>Reboot into BOOTSEL mode</td></tr>
 </table></details>
 <details><summary>API Usage</summary>
 <p style="margin:6px 0;font-size:13px">POST to <code>/api</code> with JSON body:</p>
 <pre style="background:#0d1117;padding:8px;border-radius:4px;font-size:12px;overflow-x:auto">curl -X POST http://PICO_IP/api \\
   -H "Content-Type: application/json" \\
-  -d '{"cmd":"type Hello","delay":0,"token":"YOUR_TOKEN"}'</pre>
+  -d '{"cmd":"key type Hello","delay":0,"token":"YOUR_TOKEN"}'</pre>
 <p style="margin:6px 0;font-size:13px">Response: <code>{"ok":true,"result":"OK"}</code></p>
 </details>
 <script>
@@ -84,13 +86,28 @@ const $ =id=> document.getElementById(id);
 window.onload=()=>{$('token').value=localStorage.getItem('hid_token')||''};
 async function send(){
  const t=$('token').value;localStorage.setItem('hid_token',t);
+ const cmd=$('cmd').value;
+ const isReboot=cmd.trim().toLowerCase().startsWith('reboot');
  $('res').textContent='...';
  try{
   const r=await fetch('/api',{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({cmd:$('cmd').value,delay:parseInt($('delay').value)||0,token:t})});
+   body:JSON.stringify({cmd:cmd,delay:parseInt($('delay').value)||0,token:t})});
   const j=await r.json();
-  $('res').textContent=j.ok?j.result:'ERROR: '+j.error;
- }catch(e){$('res').textContent='ERROR: '+e.message}
+  if(j.ok){$('res').textContent=j.result;$('cmd').value=''}
+  else{$('res').textContent='ERROR: '+j.error}
+ }catch(e){
+  if(isReboot){$('cmd').value=''}
+  else{$('res').textContent='ERROR: '+e.message}
+ }
+ if(isReboot)waitReboot();
+}
+function waitReboot(){
+ const el=$('res');const t0=Date.now();
+ el.textContent='Rebooting... waiting for device';
+ const iv=setInterval(async()=>{
+  if(Date.now()-t0>60000){clearInterval(iv);el.textContent='Reboot timed out (60s)';return}
+  try{const r=await fetch('/health');if(r.ok){clearInterval(iv);location.reload()}}catch(e){}
+ },2000);
 }
 $('cmd').onkeydown=e=>{if(e.key==='Enter')send()};
 </script></body></html>"""
@@ -168,6 +185,12 @@ async def _handle_client(reader, writer):
                     content_length = int(decoded.split(":")[1].strip())
                 except ValueError:
                     pass
+
+        # GET /health — lightweight health check (no auth required)
+        if method == "GET" and path == "/health":
+            _send_response(writer, 200, "application/json", '{"ok":true}')
+            await writer.drain()
+            return
 
         # GET / — serve HTML page
         if method == "GET" and path == "/":

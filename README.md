@@ -8,7 +8,7 @@ A Raspberry Pi Pico 2 W acting as a USB HID keyboard and mouse, controlled over 
 
 ### Flash Firmware
 
-1. Hold BOOTSEL on the Pico and plug it in (or send the `bootloader` command if already connected)
+1. Hold BOOTSEL on the Pico and plug it in (or send `reboot bootloader` if already connected)
 2. Copy `pico_hid_firmware.uf2` to the USB drive that appears
 
 ### Configure
@@ -54,7 +54,7 @@ The web interface uses a JSON API that can also be called directly:
 ```
 curl -X POST http://PICO_IP/api \
   -H "Content-Type: application/json" \
-  -d '{"cmd":"type Hello","delay":0,"token":"mysecrettoken"}'
+  -d '{"cmd":"key type Hello","delay":0,"token":"mysecrettoken"}'
 ```
 
 Response: `{"ok":true,"result":"OK"}`
@@ -132,11 +132,11 @@ Type `help` once connected for a list of commands.
 
 | Command | Description |
 |---|---|
-| `key <name>` | Press and release a key |
-| `keydown <name>` / `keyup <name>` | Hold / release a key |
-| `mod <mods> <key>` | Modifier combo (e.g. `mod ctrl+shift esc`) |
-| `type <text>` | Type a string |
-| `releaseall` | Release all keys |
+| `key tap <name>` | Press and release a key |
+| `key down <name>` / `key up <name>` | Hold / release a key |
+| `key mod <mods> <key>` | Modifier combo (e.g. `key mod ctrl+shift esc`) |
+| `key type <text>` | Type a string |
+| `key release` | Release all held keys |
 
 ### Mouse
 
@@ -147,6 +147,7 @@ Type `help` once connected for a list of commands.
 | `mouse click <btn>` | Click left/right/middle |
 | `mouse down <btn>` / `mouse up <btn>` | Hold / release button |
 | `mouse scroll <n>` | Scroll (positive = up) |
+| `mouse release` | Release all held buttons |
 
 ### WiFi
 
@@ -181,9 +182,9 @@ Type `help` once connected for a list of commands.
 | Command | Description |
 |---|---|
 | `ping` | Test connection (returns PONG) |
-| `reset` | Release all keys and buttons |
 | `status` | Show overall system status (wifi, api, webui) |
-| `bootloader` | Reboot Pico into BOOTSEL (UF2 flash) mode |
+| `reboot` | Restart the Pico |
+| `reboot bootloader` | Reboot Pico into BOOTSEL (UF2 flash) mode |
 
 ## Input Monitor
 

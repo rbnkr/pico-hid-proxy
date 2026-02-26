@@ -31,14 +31,12 @@ def _dispatch(cmd, from_web=False):
     # System
     if k == "ping":
         return "PONG"
-    if k == "reset":
-        keyboard.release_all()
-        mouse.release_all()
-        return "OK"
-    if k == "releaseall":
-        keyboard.release_all()
-        return "OK"
-    if k == "bootloader":
+    if k == "reboot":
+        _respond("OK")
+        time.sleep(0.1)
+        machine.reset()
+        return None
+    if k == "reboot_bootloader":
         _respond("OK")
         time.sleep(0.1)
         machine.bootloader()
@@ -145,20 +143,23 @@ def _dispatch(cmd, from_web=False):
         return "\n".join(lines)
 
     # Keyboard
-    if k == "key":
+    if k == "key_tap":
         keyboard.press_key(p["mod"], p["code"])
         return "OK"
-    if k == "keydown":
+    if k == "key_down":
         keyboard.key_down(p["mod"], p["code"])
         return "OK"
-    if k == "keyup":
+    if k == "key_up":
         keyboard.key_up(p["mod"], p["code"])
         return "OK"
-    if k == "mod":
+    if k == "key_mod":
         keyboard.mod_key(p["mod"], p["code"])
         return "OK"
-    if k == "type":
+    if k == "key_type":
         keyboard.type_chars(p["chars"])
+        return "OK"
+    if k == "key_release":
+        keyboard.release_all()
         return "OK"
 
     # Mouse
@@ -179,6 +180,9 @@ def _dispatch(cmd, from_web=False):
         return "OK"
     if k == "mouse_scroll":
         mouse.scroll(p["amount"])
+        return "OK"
+    if k == "mouse_release":
+        mouse.release_all()
         return "OK"
 
     return "ERR unknown command kind"
