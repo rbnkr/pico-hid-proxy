@@ -200,4 +200,6 @@ Press Ctrl+C to stop the monitor.
 
 ## Licenses
 
-This firmware is built for Raspberry Pi Pico 2 W and includes MicroPython (MIT), Pico SDK (BSD-3-Clause), TinyUSB (MIT), lwIP (BSD), cyw43-driver and BTstack (licensed by Raspberry Pi Ltd for use with Pico W hardware).
+This project's code is released under the [MIT License](LICENSE).
+
+The firmware is built for Raspberry Pi Pico 2 W and includes MicroPython (MIT), Pico SDK (BSD-3-Clause), TinyUSB (MIT), lwIP (BSD), cyw43-driver and BTstack (licensed by Raspberry Pi Ltd for use with Pico W hardware).
