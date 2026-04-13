@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-ARG MICROPYTHON_TAG=v1.27.0
+ARG MICROPYTHON_TAG=v1.28.0
 ARG BOARD=RPI_PICO2_W
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
