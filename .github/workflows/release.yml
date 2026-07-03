@@ -24,6 +24,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: false
           tag_prefix: v
+          # Treat `deps:` commits (e.g. the MicroPython auto-bump) as a patch release
+          custom_release_rules: deps:patch:Dependencies
 
   release:
     needs: tag
